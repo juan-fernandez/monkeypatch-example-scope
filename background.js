@@ -1,6 +1,7 @@
-const CONSTANT_NAME = "CONSTANT_NAME";
+const CONSTANT = 'CONSTANT'
+const DELAY_TIME = 4000
 
-const getJavascriptCodeToExecute = code => 
+const getJavascriptCodeToExecute = code =>
   `
     var el = document.createElement('script')
     el.type = 'text/javascript'
@@ -8,49 +9,44 @@ const getJavascriptCodeToExecute = code =>
     document.head.appendChild(el)
   `
 
+const doAsyncTask = delay => new Promise(resolve => setTimeout(() => resolve([]), delay))
 
-const doAsyncTask = () => 
-  new Promise(resolve => 
-      setTimeout(resolve, 5000);
-  );
-
-
-const getInstrumentFetchCode = () => 
+const getInstrumentFetchCode = () =>
   `
     const previousFetch = window.fetch
     window.fetch = (...args) => {
-      console.log("I need a ${CONSTANT_NAME}")
-      return (${doAsyncTask.toString()})().then(() => {
-        return previousFetch(...args).then(response => {
-          console.log('This is the delayed response', response)
+      console.log('I need a ${CONSTANT} in this monkey patched code.')
+      return (${doAsyncTask.toString()})(${DELAY_TIME}).then(asyncTaskResult => {
+        const newFetchArgs = [...args, ...asyncTaskResult]
+        return previousFetch(...newFetchArgs).then(response => {
+          console.log('This is the delayed response:', response)
           return response
         })
       })
     }
   `
 
-
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  const { type } = request;
+  const { type } = request
 
   switch (type) {
-    case "SLOW_DOWN_REQUESTS":
+    case 'SLOW_DOWN_REQUESTS':
       chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-        let currentTabId;
+        let currentTabId
         try {
-          const [currentTab] = tabs;
-          currentTabId = currentTab.id;
+          const [currentTab] = tabs
+          currentTabId = currentTab.id
         } catch (e) {}
         chrome.tabs.executeScript(currentTabId, {
           code: getJavascriptCodeToExecute(getInstrumentFetchCode()),
-          runAt: "document_start"
-        });
+          runAt: 'document_start',
+        })
         chrome.tabs.executeScript(currentTabId, {
-          file: "/user-events.js",
-          allFrames: true
-        });
-      });
+          file: '/user-events.js',
+          allFrames: true,
+        })
+      })
 
-      break;
+      break
   }
-});
+})
