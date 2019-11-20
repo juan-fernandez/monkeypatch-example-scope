@@ -17,3 +17,9 @@ It highlights how we did monkey patching for `fetch` in [Scope For Chrome](https
 You may simply reload your tab to get rid of the delay.
 
 If you want to remove the extension altogether you may simply press `Remove` in `Monkey Patching Example Scope` under `chrome://extensions`.
+
+### More information
+
+You can sign up for Scope [here](https://scope.dev/).
+
+You can download Scope For Chrome [here](https://home.undefinedlabs.com/goto/scope-for-chrome).
